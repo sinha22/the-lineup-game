@@ -580,106 +580,19 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── PUZZLES ──────────────────────────────────────────────────────────────────
-const PUZZLES = [
-  {
-    category: "Wildlife",
-    question: "Rank these 5 animals from <span>heaviest to lightest</span> by average adult weight",
-    items: [
-      { name: "African Elephant", value: 6000, display: "~6,000 kg" },
-      { name: "Hippopotamus",     value: 1500, display: "~1,500 kg" },
-      { name: "Polar Bear",       value: 450,  display: "~450 kg" },
-      { name: "Giant Panda",      value: 120,  display: "~120 kg" },
-      { name: "Cheetah",          value: 55,   display: "~55 kg" }
-    ],
-    order: "desc"
-  },
-  {
-    category: "World",
-    question: "Rank these 5 countries from <span>most to least populous</span> by current population",
-    items: [
-      { name: "India",         value: 1430, display: "1.43 billion" },
-      { name: "China",         value: 1410, display: "1.41 billion" },
-      { name: "United States", value: 335,  display: "335 million" },
-      { name: "Indonesia",     value: 278,  display: "278 million" },
-      { name: "Pakistan",      value: 232,  display: "232 million" }
-    ],
-    order: "desc"
-  },
-  {
-    category: "Cinema",
-    question: "Rank these 5 films from <span>highest to lowest</span> all-time worldwide box office gross",
-    items: [
-      { name: "Avatar",             value: 2923, display: "$2.92 billion" },
-      { name: "Avengers: Endgame",  value: 2799, display: "$2.80 billion" },
-      { name: "Titanic",            value: 2257, display: "$2.26 billion" },
-      { name: "The Lion King (2019)",value: 1663, display: "$1.66 billion" },
-      { name: "Jurassic World",     value: 1672, display: "$1.67 billion" }
-    ],
-    order: "desc"
-  },
-  {
-    category: "Food",
-    question: "Rank these 5 foods from <span>most to least calories</span> per 100g",
-    items: [
-      { name: "Butter",       value: 717, display: "717 kcal" },
-      { name: "Dark Chocolate",value: 546, display: "546 kcal" },
-      { name: "Cheddar Cheese",value: 403, display: "403 kcal" },
-      { name: "White Rice",   value: 130, display: "130 kcal" },
-      { name: "Apple",        value: 52,  display: "52 kcal" }
-    ],
-    order: "desc"
-  },
-  {
-    category: "Space",
-    question: "Rank these 5 planets from <span>largest to smallest</span> by diameter",
-    items: [
-      { name: "Jupiter", value: 139820, display: "139,820 km" },
-      { name: "Saturn",  value: 116460, display: "116,460 km" },
-      { name: "Uranus",  value: 50724,  display: "50,724 km" },
-      { name: "Neptune", value: 49244,  display: "49,244 km" },
-      { name: "Earth",   value: 12742,  display: "12,742 km" }
-    ],
-    order: "desc"
-  },
-  {
-    category: "Speed",
-    question: "Rank these 5 animals from <span>fastest to slowest</span> top speed",
-    items: [
-      { name: "Cheetah",      value: 120, display: "~120 km/h" },
-      { name: "Pronghorn",    value: 98,  display: "~98 km/h" },
-      { name: "Lion",         value: 80,  display: "~80 km/h" },
-      { name: "Greyhound",    value: 72,  display: "~72 km/h" },
-      { name: "Grizzly Bear", value: 56,  display: "~56 km/h" }
-    ],
-    order: "desc"
-  },
-  {
-    category: "History",
-    question: "Rank these 5 ancient wonders by <span>year built</span>, oldest first",
-    items: [
-      { name: "Great Pyramid of Giza",      value: -2560, display: "~2560 BC" },
-      { name: "Hanging Gardens of Babylon", value: -600,  display: "~600 BC" },
-      { name: "Temple of Artemis",          value: -550,  display: "~550 BC" },
-      { name: "Colossus of Rhodes",         value: -280,  display: "~280 BC" },
-      { name: "Lighthouse of Alexandria",   value: -247,  display: "~247 BC" }
-    ],
-    order: "asc"
-  }
-];
+
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const WORKER_URL = 'https://lineup-puzzle-generator.sinhautkarsh-1.workers.dev';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const today = new Date();
 const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
 const dayNum = Math.floor((today - new Date(2025, 0, 1)) / 86400000) + 1;
 
-const puzzleIdx = dayNum % PUZZLES.length;
-const PUZZLE = PUZZLES[puzzleIdx];
-const correctOrder = [...PUZZLE.items].sort((a, b) =>
-  PUZZLE.order === 'desc' ? b.value - a.value : a.value - b.value
-);
-
-let currentOrder = shuffle([...PUZZLE.items]);
+let PUZZLE = null;
+let correctOrder = [];
+let currentOrder = [];
 let dragSrcIdx = null;
 let touchSrcIdx = null;
 let touchClone = null;
@@ -706,14 +619,45 @@ function initStats() {
   }
 }
 
+// ─── LOADING STATE ────────────────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('puzzleQuestion').innerHTML = '<span style="color:var(--text-muted);font-size:13px;letter-spacing:1px">Loading today\'s puzzle...</span>';
+  document.getElementById('submitBtn').disabled = true;
+}
+
+function showError() {
+  document.getElementById('puzzleQuestion').innerHTML = '<span style="color:var(--red);font-size:13px">Failed to load puzzle. Please refresh.</span>';
+}
+
 // ─── PUZZLE SETUP ─────────────────────────────────────────────────────────────
-function setup() {
+async function setup() {
   document.getElementById('puzzleDay').textContent = `Day #${dayNum}`;
-  document.getElementById('puzzleQuestion').innerHTML = PUZZLE.question;
-  document.getElementById('puzzleCategory').textContent = PUZZLE.category;
   document.getElementById('tomorrowNum').textContent = dayNum + 1;
-  renderItems();
+  showLoading();
   initStats();
+
+  try {
+    const res = await fetch(WORKER_URL);
+    if (!res.ok) throw new Error('Worker error');
+    PUZZLE = await res.json();
+    if (PUZZLE.error) throw new Error(PUZZLE.error);
+
+    correctOrder = [...PUZZLE.items].sort((a, b) =>
+      PUZZLE.order === 'desc' ? b.value - a.value : a.value - b.value
+    );
+    currentOrder = shuffle([...PUZZLE.items]);
+
+    document.getElementById('puzzleQuestion').innerHTML = PUZZLE.question;
+    document.getElementById('puzzleCategory').textContent = PUZZLE.category;
+    document.getElementById('puzzleDay').textContent = `Day #${PUZZLE.dayNum || dayNum}`;
+    document.getElementById('tomorrowNum').textContent = (PUZZLE.dayNum || dayNum) + 1;
+    document.getElementById('submitBtn').disabled = false;
+    renderItems();
+
+  } catch (err) {
+    console.error('Puzzle fetch failed:', err);
+    showError();
+  }
 }
 
 function shuffle(arr) {
