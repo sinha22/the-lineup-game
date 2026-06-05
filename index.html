@@ -431,7 +431,7 @@
     background: var(--bg3);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 16px;
+    padding: 13px 16px;
     display: flex;
     align-items: center;
     gap: 13px;
@@ -470,6 +470,17 @@
     color: var(--text-muted);
     margin-top: 2px;
   }
+
+  .result-annotation {
+    font-size: 11px;
+    margin-top: 3px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
+  .result-annotation.exact { color: var(--green); }
+  .result-annotation.close { color: var(--gold); }
+  .result-annotation.off   { color: var(--red); }
 
   .result-badge { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
@@ -930,6 +941,18 @@ function showResult(score, streak, grid) {
     const r = grid.find(g => g.item.name === item.name);
     const cls = r ? r.cls : 'off';
     const dotColor = cls === 'exact' ? 'dot-green' : cls === 'close' ? 'dot-yellow' : 'dot-red';
+
+    // Find where player put this item
+    const playerIdx = currentOrder.findIndex(p => p.name === item.name);
+    let annotation = '';
+    if (cls === 'exact') {
+      annotation = `<div class="result-annotation exact">You got this right</div>`;
+    } else if (cls === 'close') {
+      annotation = `<div class="result-annotation close">You had this at #${playerIdx + 1}</div>`;
+    } else {
+      annotation = `<div class="result-annotation off">You had this at #${playerIdx + 1}</div>`;
+    }
+
     const el = document.createElement('div');
     el.className = `result-item ${cls}`;
     el.innerHTML = `
@@ -937,6 +960,7 @@ function showResult(score, streak, grid) {
       <div class="result-info">
         <div class="result-name">${item.name}</div>
         <div class="result-val">${item.display}</div>
+        ${annotation}
       </div>
       <div class="result-badge dot ${dotColor}"></div>`;
     rl.appendChild(el);
