@@ -245,13 +245,17 @@
   }
 
   /* Floating drag clone */
+  .drag-clone, .drag-clone * {
+    pointer-events: none;
+  }
+
   .drag-clone {
     position: fixed;
     pointer-events: none;
     z-index: 9999;
     border-radius: var(--radius);
     background: var(--bg4);
-    border: 1px solid var(--gold);
+    border: 1.5px solid var(--gold);
     box-shadow: 0 16px 48px rgba(0,0,0,0.75), 0 0 0 1px rgba(245,200,66,0.35);
     transform: scale(1.05) rotate(0.8deg);
     transition: none;
@@ -770,9 +774,10 @@ function onPointerDown(e) {
   });
 
   const rect = this.getBoundingClientRect();
+  const scrollX = window.scrollX || window.pageXOffset;
+  const scrollY = window.scrollY || window.pageYOffset;
   dragOffsetX = e.clientX - rect.left;
   dragOffsetY = e.clientY - rect.top;
-
   // Ghost source — hide completely, just keep space
   this.style.opacity = '0';
   this.style.pointerEvents = 'none';
@@ -782,25 +787,27 @@ function onPointerDown(e) {
   dragCloneEl.className = 'drag-clone';
   dragCloneEl.style.width = rect.width + 'px';
   dragCloneEl.innerHTML = this.innerHTML;
-  positionClone(e.clientX, e.clientY);
+  positionClone(e);
   document.body.appendChild(dragCloneEl);
 
   if (navigator.vibrate) navigator.vibrate(22);
+
+  document.body.classList.add('dragging-active');
 
   document.addEventListener('pointermove', onPointerMove, { passive: false });
   document.addEventListener('pointerup',   onPointerUp);
   document.addEventListener('pointercancel', onPointerUp);
 }
 
-function positionClone(cx, cy) {
-  dragCloneEl.style.left = (cx - dragOffsetX) + 'px';
-  dragCloneEl.style.top  = (cy - dragOffsetY + window.scrollY) + 'px';
+function positionClone(e) {
+  dragCloneEl.style.left = (e.clientX - dragOffsetX) + 'px';
+  dragCloneEl.style.top  = (e.clientY - dragOffsetY) + 'px';
 }
 
 function onPointerMove(e) {
   if (!dragActive) return;
   e.preventDefault();
-  positionClone(e.clientX, e.clientY);
+  positionClone(e);
 
   // Find target slot using CACHED original rects — unaffected by transforms
   let newTarget = 0;
@@ -828,7 +835,8 @@ function onPointerMove(e) {
 }
 
 function onPointerUp(e) {
-  dragActive = false; // always reset regardless
+  dragActive = false;
+  document.body.classList.remove('dragging-active'); // always reset regardless
 
   document.removeEventListener('pointermove', onPointerMove);
   document.removeEventListener('pointerup',   onPointerUp);
