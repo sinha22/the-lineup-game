@@ -1,0 +1,24 @@
+{
+  "name": "The Lineup",
+  "short_name": "The Lineup",
+  "description": "Every day, 5 items. One correct order. Can you crack the lineup?",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090e",
+  "theme_color": "#09090e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%2309090e'/><rect x='24' y='144' width='24' height='24' rx='6' fill='%23f5c842' opacity='0.2'/><rect x='60' y='108' width='24' height='60' rx='6' fill='%23f5c842' opacity='0.4'/><rect x='96' y='72' width='24' height='96' rx='6' fill='%23f5c842' opacity='0.65'/><rect x='132' y='36' width='24' height='132' rx='6' fill='%23f5c842' opacity='0.85'/><rect x='168' y='12' width='24' height='156' rx='6' fill='%23f5c842'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%2309090e'/><rect x='64' y='384' width='64' height='64' rx='12' fill='%23f5c842' opacity='0.2'/><rect x='160' y='288' width='64' height='160' rx='12' fill='%23f5c842' opacity='0.4'/><rect x='256' y='192' width='64' height='256' rx='12' fill='%23f5c842' opacity='0.65'/><rect x='352' y='96' width='64' height='352' rx='12' fill='%23f5c842' opacity='0.85'/><rect x='448' y='32' width='64' height='416' rx='12' fill='%23f5c842'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}

@@ -10,6 +10,16 @@
 <meta property="og:url" content="https://thegameforge.win">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2309090e'/><rect x='4' y='24' width='4' height='4' rx='1' fill='%23f5c842' opacity='0.2'/><rect x='10' y='18' width='4' height='10' rx='1' fill='%23f5c842' opacity='0.4'/><rect x='16' y='12' width='4' height='16' rx='1' fill='%23f5c842' opacity='0.65'/><rect x='22' y='6' width='4' height='22' rx='1' fill='%23f5c842' opacity='0.85'/><rect x='28' y='2' width='4' height='26' rx='1' fill='%23f5c842'/></svg>">
 <meta name="theme-color" content="#09090e">
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Lineup">
+<meta property="og:image" content="https://thegameforge.win/og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Lineup">
+<meta name="twitter:description" content="Every day, 5 items. One correct order. Can you crack the lineup?">
+<meta name="twitter:image" content="https://thegameforge.win/og.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://clerk.thegameforge.win">
 <!-- Clerk -->
@@ -1362,6 +1372,7 @@ function onPointerDown(e) {
   document.body.appendChild(dragCloneEl);
 
   if (navigator.vibrate) navigator.vibrate(22);
+  playTick();
 
   document.body.classList.add('dragging-active');
 
@@ -1428,6 +1439,7 @@ function onPointerUp(e) {
     const item = currentOrder.splice(dragFromIdx, 1)[0];
     currentOrder.splice(dragToIdx, 0, item);
     if (navigator.vibrate) navigator.vibrate(12);
+    playSwap();
   }
 
   renderItems();
@@ -1485,6 +1497,8 @@ function submitGuess() {
   showResult(score, s.streak, emojiGrid);
   submitScore(score, todayKey);
   setTimeout(showSignInPrompt, 1500);
+  if (score === 100) playSuccess();
+  else playReveal();
 
   // GA event
   if (typeof gtag !== 'undefined') {
@@ -2136,6 +2150,82 @@ function devCopyPuzzleUrl() {
 setupDragListener();
 setup();
 window.addEventListener('load', initAuth);
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ─── SOUND EFFECTS ────────────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+function playTick() {
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 440;
+    o.type = 'sine';
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    o.start(); o.stop(ctx.currentTime + 0.08);
+  } catch {}
+}
+
+function playSwap() {
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(300, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.06);
+    o.type = 'sine';
+    g.gain.setValueAtTime(0.06, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    o.start(); o.stop(ctx.currentTime + 0.1);
+  } catch {}
+}
+
+function playSuccess() {
+  try {
+    const ctx = getAudio();
+    [523, 659, 784].forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq;
+      o.type = 'sine';
+      const t = ctx.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.1, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o.start(t); o.stop(t + 0.2);
+    });
+  } catch {}
+}
+
+function playReveal() {
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(400, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+    o.type = 'triangle';
+    g.gain.setValueAtTime(0.07, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    o.start(); o.stop(ctx.currentTime + 0.2);
+  } catch {}
+}
 </script>
 </body>
 </html>
