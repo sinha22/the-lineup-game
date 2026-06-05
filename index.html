@@ -8,6 +8,8 @@
 <meta property="og:title" content="The Lineup">
 <meta property="og:description" content="Daily ranking challenge — drag, rank, share.">
 <meta property="og:url" content="https://thegameforge.win">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2309090e'/><rect x='4' y='24' width='4' height='4' rx='1' fill='%23f5c842' opacity='0.2'/><rect x='10' y='18' width='4' height='10' rx='1' fill='%23f5c842' opacity='0.4'/><rect x='16' y='12' width='4' height='16' rx='1' fill='%23f5c842' opacity='0.65'/><rect x='22' y='6' width='4' height='22' rx='1' fill='%23f5c842' opacity='0.85'/><rect x='28' y='2' width='4' height='26' rx='1' fill='%23f5c842'/></svg>">
+<meta name="theme-color" content="#09090e">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://clerk.thegameforge.win">
 <!-- Clerk -->
@@ -874,6 +876,106 @@
     animation: fadeUp 0.5s ease 0.35s both;
   }
 
+  /* ── DEV PANEL ── */
+  .dev-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 99999;
+    overflow-y: auto;
+    padding: 24px 16px 40px;
+    font-family: 'DM Sans', monospace;
+  }
+
+  .dev-panel.show { display: block; }
+
+  .dev-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(245,200,66,0.3);
+  }
+
+  .dev-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--gold);
+  }
+
+  .dev-close {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .dev-close:hover { border-color: var(--red); color: var(--red); }
+
+  .dev-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .dev-section-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 10px;
+  }
+
+  .dev-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    gap: 12px;
+  }
+
+  .dev-row span:first-child { color: var(--text-muted); flex-shrink: 0; }
+  .dev-row span:last-child { color: var(--text); text-align: right; word-break: break-all; }
+
+  .dev-puzzle-items { margin-top: 8px; }
+  .dev-item { font-size: 12px; color: var(--text-mid); padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
+  .dev-item-rank { color: var(--gold); font-family: 'Bebas Neue', sans-serif; font-size: 16px; min-width: 20px; }
+
+  .dev-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    margin-right: 8px;
+    margin-top: 8px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .dev-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .dev-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .dev-log {
+    font-size: 12px;
+    color: var(--green);
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
   /* ── TOAST ── */
   .toast {
     position: fixed;
@@ -951,7 +1053,7 @@
     Sign in to save your streak across devices and see how you rank against other players.
   </div>
 </div>
-  <div style="display:flex;justify-content:flex-end;min-height:28px;padding-bottom:4px;">
+  <div style="display:flex;justify-content:flex-end;min-height:36px;padding:8px 0 12px;">
     <div id="authArea"></div>
   </div>
   <div class="logo">The Lineup</div>
@@ -1061,6 +1163,41 @@
 
 </div>
 
+<div class="dev-panel" id="devPanel">
+  <div class="dev-header">
+    <div class="dev-title">⚙ Dev Panel</div>
+    <button class="dev-close" onclick="closeDevPanel()">✕ Close</button>
+  </div>
+
+  <div class="dev-section">
+    <div class="dev-section-title">Today's Puzzle</div>
+    <div id="devTodayPuzzle"><span style="color:var(--text-muted);font-size:13px">Loading...</span></div>
+  </div>
+
+  <div class="dev-section">
+    <div class="dev-section-title">Tomorrow's Puzzle</div>
+    <div id="devTomorrowPuzzle"><span style="color:var(--text-muted);font-size:13px">Loading...</span></div>
+  </div>
+
+  <div class="dev-section">
+    <div class="dev-section-title">Community Stats — Today</div>
+    <div id="devStats"><span style="color:var(--text-muted);font-size:13px">Loading...</span></div>
+  </div>
+
+  <div class="dev-section">
+    <div class="dev-section-title">Local Storage</div>
+    <div id="devLocal"></div>
+  </div>
+
+  <div class="dev-section">
+    <div class="dev-section-title">Actions</div>
+    <button class="dev-btn" onclick="devRefreshPuzzle()">↻ Refresh Today's Puzzle</button>
+    <button class="dev-btn danger" onclick="devClearLocal()">✕ Clear Local Storage</button>
+    <button class="dev-btn" onclick="devCopyPuzzleUrl()">⎘ Copy Puzzle URL</button>
+    <div class="dev-log" id="devLog"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1070,7 +1207,8 @@ const WORKER_URL = 'https://lineup-puzzle-generator.sinhautkarsh-1.workers.dev';
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const today = new Date();
 const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-const dayNum = Math.floor((today - new Date(2025, 0, 1)) / 86400000) + 1;
+const LAUNCH_DATE = new Date(2026, 5, 5); // June 5, 2026
+const dayNum = Math.floor((today - LAUNCH_DATE) / 86400000) + 1;
 
 let PUZZLE = null;
 let correctOrder = [];
@@ -1894,6 +2032,105 @@ function showSignInPrompt() {
     const prompt = document.getElementById('signinPrompt');
     if (prompt) prompt.style.display = 'block';
   }
+}
+
+// ─── DEV PANEL ────────────────────────────────────────────────────────────────
+let devKeyBuffer = [];
+
+document.addEventListener('keydown', e => {
+  devKeyBuffer.push(e.key.toLowerCase());
+  if (devKeyBuffer.length > 3) devKeyBuffer.shift();
+  if (devKeyBuffer.join('') === 'dev') {
+    openDevPanel();
+    devKeyBuffer = [];
+  }
+});
+
+async function openDevPanel() {
+  document.getElementById('devPanel').classList.add('show');
+  loadDevData();
+}
+
+function closeDevPanel() {
+  document.getElementById('devPanel').classList.remove('show');
+}
+
+async function loadDevData() {
+  const todayDate = today.toISOString().split('T')[0];
+  const tomorrowDate = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
+
+  try {
+    const res = await fetch(WORKER_URL);
+    const p = await res.json();
+    renderDevPuzzle('devTodayPuzzle', p, todayDate);
+  } catch { document.getElementById('devTodayPuzzle').innerHTML = '<span style="color:var(--red)">Failed to load</span>'; }
+
+  try {
+    const res = await fetch(`${WORKER_URL}/puzzle/${tomorrowDate}`);
+    if (res.ok) {
+      const p = await res.json();
+      renderDevPuzzle('devTomorrowPuzzle', p, tomorrowDate);
+    } else {
+      document.getElementById('devTomorrowPuzzle').innerHTML = '<span style="color:var(--text-muted);font-size:13px">Not generated yet — will auto-generate at midnight UTC</span>';
+    }
+  } catch { document.getElementById('devTomorrowPuzzle').innerHTML = '<span style="color:var(--text-muted)">Not yet generated</span>'; }
+
+  try {
+    const res = await fetch(`${WORKER_URL}/stats?date=${todayDate}`);
+    const s = await res.json();
+    document.getElementById('devStats').innerHTML = `
+      <div class="dev-row"><span>Players today</span><span>${s.total || 0}</span></div>
+      <div class="dev-row"><span>Average score</span><span>${s.avg || 0}</span></div>
+      <div class="dev-row"><span>Difficulty</span><span>${s.difficulty?.label || '—'}</span></div>`;
+  } catch { document.getElementById('devStats').innerHTML = '<span style="color:var(--text-muted)">No data yet</span>'; }
+
+  const s = getStats();
+  document.getElementById('devLocal').innerHTML = `
+    <div class="dev-row"><span>Streak</span><span>${s.streak || 0}</span></div>
+    <div class="dev-row"><span>Played</span><span>${s.played || 0}</span></div>
+    <div class="dev-row"><span>Best score</span><span>${s.best || '—'}</span></div>
+    <div class="dev-row"><span>Last played</span><span>${s.lastPlayed || '—'}</span></div>
+    <div class="dev-row"><span>Last score</span><span>${s.lastScore || '—'}</span></div>
+    <div class="dev-row"><span>Guest mode</span><span>${localStorage.getItem('tl_guest') ? 'Yes' : 'No'}</span></div>
+    <div class="dev-row"><span>Signed in</span><span>${localStorage.getItem('tl_clerk_user') ? 'Yes' : 'No'}</span></div>`;
+}
+
+function renderDevPuzzle(elId, p, date) {
+  if (!p || p.error) {
+    document.getElementById(elId).innerHTML = '<span style="color:var(--red)">Error: ' + (p?.error || 'unknown') + '</span>';
+    return;
+  }
+  const correctOrder = [...p.items].sort((a, b) => p.order === 'desc' ? b.value - a.value : a.value - b.value);
+  document.getElementById(elId).innerHTML = `
+    <div class="dev-row"><span>Date</span><span>${date}</span></div>
+    <div class="dev-row"><span>Day #</span><span>${p.dayNum || '—'}</span></div>
+    <div class="dev-row"><span>Category</span><span>${p.category}</span></div>
+    <div class="dev-row"><span>Question</span><span>${p.question?.replace(/<[^>]+>/g, '') || '—'}</span></div>
+    <div class="dev-puzzle-items">${correctOrder.map((item, i) =>
+      `<div class="dev-item"><span class="dev-item-rank">${i+1}</span><span>${item.name} — ${item.display}</span></div>`
+    ).join('')}</div>`;
+}
+
+async function devRefreshPuzzle() {
+  const log = document.getElementById('devLog');
+  log.textContent = 'Refreshing...';
+  try {
+    const res = await fetch(WORKER_URL + '?bust=' + Date.now());
+    const p = await res.json();
+    log.textContent = p.error ? '✕ ' + p.error : '✓ Fetched (cached puzzles need KV cleared to regenerate)';
+    loadDevData();
+  } catch { log.textContent = '✕ Failed to fetch'; }
+}
+
+function devClearLocal() {
+  localStorage.clear();
+  document.getElementById('devLog').textContent = '✓ Local storage cleared — refresh page to reset';
+  loadDevData();
+}
+
+function devCopyPuzzleUrl() {
+  navigator.clipboard.writeText(WORKER_URL);
+  document.getElementById('devLog').textContent = '✓ Worker URL copied to clipboard';
 }
 
 setupDragListener();
