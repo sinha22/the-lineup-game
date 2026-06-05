@@ -9,6 +9,11 @@
 <meta property="og:description" content="Daily ranking challenge — drag, rank, share.">
 <meta property="og:url" content="https://thegameforge.win">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+<!-- Clerk -->
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_live_Y2xlcmsudGhlZ2FtZWZvcmdlLndpbiQ"
+  src="https://clerk.thegameforge.win/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+  type="text/javascript">
+</script>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GPGB6YBL73"></script>
 <script>
@@ -488,7 +493,179 @@
 
   .result-badge { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-  /* ── SHARE ── */
+  /* ── DIFFICULTY BADGE ── */
+  .difficulty-badge {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-weight: 500;
+  }
+  .diff-green  { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+  .diff-yellow { background: rgba(245,200,66,0.12); color: #f5c842; border: 1px solid rgba(245,200,66,0.25); }
+  .diff-orange { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+  .diff-red    { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+  /* ── COMMUNITY CARD ── */
+  .community-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .community-card.show { opacity: 1; transform: translateY(0); }
+
+  .community-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .community-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .community-diff {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-weight: 500;
+  }
+
+  .community-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 16px;
+  }
+
+  .community-stat { text-align: center; }
+
+  .community-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .community-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  /* Distribution bars */
+  .dist-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 48px;
+    margin-bottom: 4px;
+  }
+
+  .dist-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+    background: var(--bg4);
+    transition: height 0.4s ease;
+    position: relative;
+  }
+
+  .dist-bar.yours { background: var(--gold); }
+  .dist-bar.active { background: rgba(245,200,66,0.4); }
+
+  .dist-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0;
+    padding: 0 1px;
+  }
+
+  /* ── PRACTICE MODE ── */
+  .practice-btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .practice-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  .practice-phase { display: none; }
+  .practice-phase.show { display: block; }
+
+  .practice-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .back-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 6px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .back-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  .practice-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 2px;
+  }
+
+  .practice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .practice-day-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .practice-day-btn:hover { border-color: var(--gold); background: var(--bg4); }
+  .practice-day-btn .pd-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--gold); }
+  .practice-day-btn .pd-cat { font-size: 10px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.5px; }
   .share-btn {
     width: 100%;
     padding: 16px;
@@ -524,6 +701,58 @@
     color: var(--gold-dim);
     letter-spacing: 2px;
   }
+
+  /* ── AUTH ── */
+  .auth-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .auth-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px 4px 4px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .user-badge:hover { border-color: rgba(255,255,255,0.15); }
+
+  .user-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--gold); display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 600;
+    color: #09090e; flex-shrink: 0; overflow: hidden;
+  }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-name { font-size: 12px; color: var(--text-mid); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .signin-prompt {
+    background: var(--bg2);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius);
+    padding: 16px; text-align: center; margin-top: 12px;
+  }
+  .signin-prompt-text { font-size: 13px; color: var(--text-mid); margin-bottom: 10px; }
+  .signin-prompt-btn {
+    background: white; color: #1a1a1a; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center;
+    gap: 8px; transition: opacity 0.15s;
+  }
+  .signin-prompt-btn:hover { opacity: 0.9; }
 
   /* ── TOAST ── */
   .toast {
@@ -576,6 +805,9 @@
 <body>
 
 <div class="header">
+  <div style="display:flex;justify-content:flex-end;min-height:28px;padding-bottom:4px;">
+    <div id="authArea"></div>
+  </div>
   <div class="logo">The Lineup</div>
   <div class="tagline">Daily Ranking Challenge · thegameforge.win</div>
   <div class="divider"></div>
@@ -599,7 +831,10 @@
 
   <div id="gamePhase">
     <div class="puzzle-card">
-      <div class="puzzle-day" id="puzzleDay">Day #—</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="puzzle-day" id="puzzleDay">Day #—</div>
+        <div class="difficulty-badge" id="difficultyBadge" style="display:none"></div>
+      </div>
       <div class="puzzle-question" id="puzzleQuestion"><span style="color:var(--text-muted);font-size:13px;letter-spacing:1px">Loading today's lineup...</span></div>
       <div class="puzzle-category" id="puzzleCategory" style="opacity:0">—</div>
     </div>
@@ -615,6 +850,33 @@
       <div class="score-msg" id="scoreMsg"></div>
       <div class="score-streak" id="scoreStreak">🔥 1 Day Streak</div>
     </div>
+
+    <div class="community-card" id="communityCard" style="display:none">
+      <div class="community-header">
+        <span class="community-title">How everyone did</span>
+        <span class="community-diff" id="communityDiff"></span>
+      </div>
+      <div class="community-stats">
+        <div class="community-stat">
+          <div class="community-val" id="communityPlayers">—</div>
+          <div class="community-label">Players</div>
+        </div>
+        <div class="community-stat">
+          <div class="community-val" id="communityAvg">—</div>
+          <div class="community-label">Avg Score</div>
+        </div>
+        <div class="community-stat">
+          <div class="community-val" id="communityYours">—</div>
+          <div class="community-label">Your Score</div>
+        </div>
+      </div>
+      <div class="dist-bars" id="distBars"></div>
+      <div class="dist-labels">
+        <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span>
+        <span>50</span><span>60</span><span>70</span><span>80</span><span>90</span><span>100</span>
+      </div>
+    </div>
+
     <div class="legend">
       <div class="legend-item"><div class="dot dot-green"></div> Exact</div>
       <div class="legend-item"><div class="dot dot-yellow"></div> One off</div>
@@ -623,7 +885,32 @@
     <div class="result-list" id="resultList"></div>
     <button class="share-btn" onclick="shareResult()">⬆ Share My Result</button>
     <div class="copied" id="copiedMsg"></div>
+    <div class="signin-prompt" id="signinPrompt" style="display:none">
+      <div class="signin-prompt-text">Save your streak across devices</div>
+      <button class="signin-prompt-btn" onclick="signIn()">Sign in with Google</button>
+    </div>
     <div class="tomorrow">Come back tomorrow for <span>Day #<span id="tomorrowNum">—</span></span></div>
+    <button class="practice-btn" onclick="enterPracticeMode()">🎮 Practice Past Lineups</button>
+  </div>
+
+  <div class="practice-phase" id="practicePhase">
+    <div class="practice-header">
+      <button class="back-btn" onclick="exitPracticeMode()">← Back</button>
+      <div class="practice-title">Practice Mode</div>
+    </div>
+    <div id="practiceGrid" class="practice-grid"></div>
+    <div id="practiceGame" style="display:none">
+      <div class="puzzle-card">
+        <div class="puzzle-day" id="practicePuzzleDay">—</div>
+        <div class="puzzle-question" id="practicePuzzleQuestion"></div>
+        <div class="puzzle-category" id="practicePuzzleCategory"></div>
+      </div>
+      <div class="items-list" id="practiceItemsList"></div>
+      <button class="submit-btn" id="practiceSubmitBtn" onclick="submitPracticeGuess()">Lock In Your Lineup</button>
+      <div class="hint">Practice mode — no streak affected</div>
+      <div class="result-list" id="practiceResultList" style="margin-top:16px"></div>
+      <button class="back-btn" id="practiceBackBtn" onclick="exitPracticeGame()" style="display:none;margin-top:12px;width:100%;padding:12px">← Try Another</button>
+    </div>
   </div>
 
 </div>
@@ -912,6 +1199,8 @@ function submitGuess() {
 
   updateStatDisplay(s);
   showResult(score, s.streak, emojiGrid);
+  submitScore(score, todayKey);
+  setTimeout(showSignInPrompt, 1500);
 
   // GA event
   if (typeof gtag !== 'undefined') {
@@ -999,6 +1288,14 @@ function showStoredResult(s) {
     updateStatDisplay(s);
   }, 80);
 
+  // Fetch community stats for today
+  fetchStats(todayKey).then(data => {
+    if (data) {
+      showCommunityStats(data, s.lastScore || 0);
+      updateDifficultyBadge(data.difficulty);
+    }
+  });
+
   const rl = document.getElementById('resultList');
   rl.innerHTML = '';
   (s.lastCorrect || []).forEach((item, idx) => {
@@ -1050,9 +1347,352 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── SCORE SUBMISSION + COMMUNITY STATS ──────────────────────────────────────
+async function submitScore(score, date) {
+  try {
+    const res = await fetch(`${WORKER_URL}/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score, date })
+    });
+    const data = await res.json();
+    showCommunityStats(data, score);
+    updateDifficultyBadge(data.difficulty);
+  } catch (err) {
+    console.error('Score submission failed:', err);
+  }
+}
+
+async function fetchStats(date) {
+  try {
+    const res = await fetch(`${WORKER_URL}/stats?date=${date}`);
+    return await res.json();
+  } catch { return null; }
+}
+
+function showCommunityStats(data, yourScore) {
+  const card = document.getElementById('communityCard');
+  if (!data || data.total === 0) return;
+
+  document.getElementById('communityPlayers').textContent = data.total;
+  document.getElementById('communityAvg').textContent = data.avg;
+  document.getElementById('communityYours').textContent = yourScore;
+
+  // Difficulty badge in community card
+  const diff = data.difficulty || { label: 'Unknown', color: 'gray' };
+  const diffEl = document.getElementById('communityDiff');
+  diffEl.textContent = diff.label;
+  diffEl.className = `community-diff diff-${diff.color}`;
+
+  // Distribution bars
+  const bars = document.getElementById('distBars');
+  bars.innerHTML = '';
+  const dist = data.distribution || Array(11).fill(0);
+  const max = Math.max(...dist, 1);
+  const yourBucket = Math.min(10, Math.floor(yourScore / 10));
+
+  dist.forEach((count, i) => {
+    const bar = document.createElement('div');
+    bar.className = `dist-bar${i === yourBucket ? ' yours' : count > 0 ? ' active' : ''}`;
+    bar.style.height = `${Math.max(2, (count / max) * 48)}px`;
+    bar.title = `Score ${i * 10}-${i * 10 + 9}: ${count} players`;
+    bars.appendChild(bar);
+  });
+
+  card.style.display = 'block';
+  setTimeout(() => card.classList.add('show'), 100);
+}
+
+function updateDifficultyBadge(difficulty) {
+  if (!difficulty) return;
+  const badge = document.getElementById('difficultyBadge');
+  badge.textContent = difficulty.label;
+  badge.className = `difficulty-badge diff-${difficulty.color}`;
+  badge.style.display = 'block';
+}
+
+// ─── PRACTICE MODE ────────────────────────────────────────────────────────────
+let practiceCurrentOrder = [];
+let practiceCorrectOrder = [];
+let practicePuzzle = null;
+
+function enterPracticeMode() {
+  document.getElementById('resultPhase').classList.remove('show');
+  document.getElementById('gamePhase').style.display = 'none';
+  document.getElementById('practicePhase').classList.add('show');
+  loadPracticeGrid();
+}
+
+function exitPracticeMode() {
+  document.getElementById('practicePhase').classList.remove('show');
+  if (submitted) {
+    document.getElementById('resultPhase').classList.add('show');
+  } else {
+    document.getElementById('gamePhase').style.display = 'block';
+  }
+}
+
+function exitPracticeGame() {
+  document.getElementById('practiceGame').style.display = 'none';
+  document.getElementById('practiceGrid').style.display = 'grid';
+}
+
+async function loadPracticeGrid() {
+  const grid = document.getElementById('practiceGrid');
+  grid.innerHTML = '<div style="color:var(--text-muted);font-size:13px;grid-column:1/-1;text-align:center;padding:20px">Loading past lineups...</div>';
+
+  // Generate last 9 days
+  const days = [];
+  for (let i = 1; i <= 9; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+
+  // Fetch puzzles in parallel
+  const puzzles = await Promise.all(days.map(async date => {
+    try {
+      const res = await fetch(`${WORKER_URL}/puzzle/${date}`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
+  }));
+
+  grid.innerHTML = '';
+  puzzles.forEach((puzzle, i) => {
+    if (!puzzle) return;
+    const btn = document.createElement('div');
+    btn.className = 'practice-day-btn';
+    btn.innerHTML = `
+      <div class="pd-num">Day #${puzzle.dayNum || '?'}</div>
+      <div class="pd-cat">${puzzle.category || ''}</div>`;
+    btn.onclick = () => loadPracticeGame(puzzle);
+    grid.appendChild(btn);
+  });
+
+  if (grid.children.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-muted);font-size:13px;grid-column:1/-1;text-align:center;padding:20px">No past lineups available yet. Check back tomorrow!</div>';
+  }
+}
+
+function loadPracticeGame(puzzle) {
+  practicePuzzle = puzzle;
+  practiceCorrectOrder = [...puzzle.items].sort((a, b) =>
+    puzzle.order === 'desc' ? b.value - a.value : a.value - b.value
+  );
+  practiceCurrentOrder = shuffle([...puzzle.items]);
+
+  document.getElementById('practiceGrid').style.display = 'none';
+  document.getElementById('practiceGame').style.display = 'block';
+  document.getElementById('practicePuzzleDay').textContent = `Day #${puzzle.dayNum || '?'} — Practice`;
+  document.getElementById('practicePuzzleQuestion').innerHTML = puzzle.question;
+  document.getElementById('practicePuzzleCategory').textContent = puzzle.category;
+  document.getElementById('practiceResultList').innerHTML = '';
+  document.getElementById('practiceBackBtn').style.display = 'none';
+  document.getElementById('practiceSubmitBtn').style.display = 'block';
+  document.getElementById('practiceSubmitBtn').disabled = false;
+
+  renderPracticeItems();
+}
+
+function renderPracticeItems() {
+  const list = document.getElementById('practiceItemsList');
+  list.innerHTML = '';
+  practiceCurrentOrder.forEach((item, idx) => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.dataset.idx = idx;
+    el.innerHTML = `
+      <div class="item-num">${idx + 1}</div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-grip">
+        <div class="grip-line"></div>
+        <div class="grip-line"></div>
+        <div class="grip-line"></div>
+      </div>`;
+    list.appendChild(el);
+  });
+  initPracticeDrag();
+}
+
+function initPracticeDrag() {
+  const list = document.getElementById('practiceItemsList');
+  list.addEventListener('pointerdown', e => {
+    const item = e.target.closest('.item');
+    if (item) onPracticePointerDown.call(item, e);
+  });
+}
+
+let practiceDragActive = false, practiceDragFrom = -1, practiceDragTo = -1;
+let practiceDragClone = null, practiceDragOffX = 0, practiceDragOffY = 0;
+let practiceItemHeights = [];
+
+function onPracticePointerDown(e) {
+  if (practiceDragActive) return;
+  e.preventDefault();
+  practiceDragFrom = parseInt(this.dataset.idx);
+  practiceDragTo = practiceDragFrom;
+  practiceDragActive = true;
+
+  const els = [...document.querySelectorAll('#practiceItemsList .item')];
+  practiceItemHeights = els.map(el => {
+    const r = el.getBoundingClientRect();
+    return { top: r.top, mid: r.top + r.height / 2, h: r.height };
+  });
+
+  const rect = this.getBoundingClientRect();
+  practiceDragOffX = e.clientX - rect.left;
+  practiceDragOffY = e.clientY - rect.top;
+
+  this.style.opacity = '0';
+  practiceDragClone = document.createElement('div');
+  practiceDragClone.className = 'drag-clone';
+  practiceDragClone.style.width = rect.width + 'px';
+  practiceDragClone.innerHTML = this.innerHTML;
+  practiceDragClone.style.left = (e.clientX - practiceDragOffX) + 'px';
+  practiceDragClone.style.top  = (e.clientY - practiceDragOffY) + 'px';
+  document.body.appendChild(practiceDragClone);
+
+  document.addEventListener('pointermove', onPracticePointerMove, { passive: false });
+  document.addEventListener('pointerup', onPracticePointerUp);
+}
+
+function onPracticePointerMove(e) {
+  if (!practiceDragActive) return;
+  e.preventDefault();
+  practiceDragClone.style.left = (e.clientX - practiceDragOffX) + 'px';
+  practiceDragClone.style.top  = (e.clientY - practiceDragOffY) + 'px';
+
+  let newTarget = 0;
+  practiceItemHeights.forEach((r, i) => { if (e.clientY > r.mid) newTarget = i; });
+
+  const cloneNum = practiceDragClone.querySelector('.item-num');
+  if (cloneNum) cloneNum.textContent = newTarget + 1;
+  if (newTarget === practiceDragTo) return;
+  practiceDragTo = newTarget;
+
+  const slotH = practiceItemHeights[0].h + 9;
+  const els = [...document.querySelectorAll('#practiceItemsList .item')];
+  els.forEach((el, i) => {
+    if (i === practiceDragFrom) return;
+    let shift = 0;
+    if (practiceDragFrom < practiceDragTo && i > practiceDragFrom && i <= practiceDragTo) shift = -slotH;
+    if (practiceDragFrom > practiceDragTo && i >= practiceDragTo && i < practiceDragFrom) shift = slotH;
+    el.style.transform = shift ? `translateY(${shift}px)` : '';
+  });
+}
+
+function onPracticePointerUp(e) {
+  if (!practiceDragActive) return;
+  practiceDragActive = false;
+  document.removeEventListener('pointermove', onPracticePointerMove);
+  document.removeEventListener('pointerup', onPracticePointerUp);
+
+  if (practiceDragClone) { practiceDragClone.remove(); practiceDragClone = null; }
+  document.querySelectorAll('#practiceItemsList .item').forEach(el => {
+    el.style.transform = ''; el.style.opacity = '';
+  });
+
+  if (practiceDragTo !== practiceDragFrom) {
+    const item = practiceCurrentOrder.splice(practiceDragFrom, 1)[0];
+    practiceCurrentOrder.splice(practiceDragTo, 0, item);
+  }
+  renderPracticeItems();
+  practiceDragFrom = -1; practiceDragTo = -1;
+}
+
+function submitPracticeGuess() {
+  document.getElementById('practiceSubmitBtn').style.display = 'none';
+  const rl = document.getElementById('practiceResultList');
+  rl.innerHTML = '';
+
+  practiceCorrectOrder.forEach((item, idx) => {
+    const playerIdx = practiceCurrentOrder.findIndex(p => p.name === item.name);
+    const diff = Math.abs(playerIdx - idx);
+    const cls = diff === 0 ? 'exact' : diff === 1 ? 'close' : 'off';
+    const dotColor = cls === 'exact' ? 'dot-green' : cls === 'close' ? 'dot-yellow' : 'dot-red';
+    let annotation = cls === 'exact'
+      ? `<div class="result-annotation exact">Correct</div>`
+      : `<div class="result-annotation ${cls}">You had this at #${playerIdx + 1}</div>`;
+
+    const el = document.createElement('div');
+    el.className = `result-item ${cls}`;
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-10px)';
+    el.innerHTML = `
+      <div class="result-rank">${idx + 1}</div>
+      <div class="result-info">
+        <div class="result-name">${item.name}</div>
+        <div class="result-val">${item.display}</div>
+        ${annotation}
+      </div>
+      <div class="result-badge dot ${dotColor}"></div>`;
+    rl.appendChild(el);
+    setTimeout(() => { el.style.transition = 'opacity 0.3s, transform 0.3s'; el.style.opacity = '1'; el.style.transform = ''; }, 200 + idx * 100);
+  });
+
+  document.getElementById('practiceBackBtn').style.display = 'block';
+}
+
+// ─── AUTH (CLERK) ─────────────────────────────────────────────────────────────
+let currentUser = null;
+
+async function initAuth() {
+  try {
+    await window.Clerk.load();
+    currentUser = window.Clerk.user;
+    renderAuthArea();
+    window.Clerk.addListener(({ user }) => {
+      currentUser = user;
+      renderAuthArea();
+      if (user) document.getElementById('signinPrompt').style.display = 'none';
+    });
+  } catch (err) { console.log('Clerk not loaded:', err); }
+}
+
+function renderAuthArea() {
+  const area = document.getElementById('authArea');
+  if (!area) return;
+  if (currentUser) {
+    const name = currentUser.firstName || currentUser.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'Player';
+    const imgUrl = currentUser.imageUrl;
+    area.innerHTML = `
+      <div class="user-badge" onclick="signOut()">
+        <div class="user-avatar">${imgUrl ? `<img src="${imgUrl}" alt="${name}">` : name[0].toUpperCase()}</div>
+        <span class="user-name">${name}</span>
+      </div>`;
+  } else {
+    area.innerHTML = `<button class="auth-btn" onclick="signIn()">Sign in</button>`;
+  }
+}
+
+async function signIn() {
+  try {
+    await window.Clerk.openSignIn({
+      appearance: {
+        variables: { colorPrimary: '#f5c842', colorBackground: '#0f0f17', colorText: '#f0ede6', colorInputBackground: '#16161f', colorInputText: '#f0ede6' }
+      }
+    });
+  } catch (err) { console.log('Sign in error:', err); }
+}
+
+async function signOut() {
+  try {
+    await window.Clerk.signOut();
+    showToast('Signed out');
+  } catch (err) { console.log('Sign out error:', err); }
+}
+
+function showSignInPrompt() {
+  if (!currentUser) {
+    const prompt = document.getElementById('signinPrompt');
+    if (prompt) prompt.style.display = 'block';
+  }
+}
+
 setupDragListener();
 setup();
+window.addEventListener('load', initAuth);
 </script>
 </body>
 </html>
