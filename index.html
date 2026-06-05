@@ -739,8 +739,10 @@ function onDragStart(e) {
 }
 
 function onDragEnd() {
-  this.classList.remove('dragging');
-  document.querySelectorAll('.item').forEach(i => i.classList.remove('drag-over'));
+  dragSrcIdx = null;
+  document.querySelectorAll('.item').forEach(i => {
+    i.classList.remove('dragging', 'drag-over', 'drag-above', 'drag-below');
+  });
 }
 
 function onDragOver(e) {
@@ -758,12 +760,12 @@ function onDrop(e) {
   e.preventDefault();
   const targetIdx = parseInt(this.dataset.idx);
   if (dragSrcIdx !== null && dragSrcIdx !== targetIdx) {
-    swapItems(dragSrcIdx, targetIdx);
+    insertItem(dragSrcIdx, targetIdx);
   }
   dragSrcIdx = null;
 }
 
-// ─── MOBILE TOUCH DRAG (floating clone) ──────────────────────────────────────
+// ─── MOBILE TOUCH DRAG (floating clone + insert) ──────────────────────────────
 function onTouchStart(e) {
   e.preventDefault();
   const touch = e.touches[0];
@@ -774,18 +776,15 @@ function onTouchStart(e) {
   touchOffsetY = touch.clientY - rect.top;
   touchCloneWidth = rect.width;
 
-  // Build floating clone
   touchClone = document.createElement('div');
   touchClone.className = 'drag-clone';
   touchClone.style.width = touchCloneWidth + 'px';
   touchClone.innerHTML = this.innerHTML;
   touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
-  touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+  touchClone.style.top = (touch.clientY - touchOffsetY + window.scrollY) + 'px';
   document.body.appendChild(touchClone);
 
   this.classList.add('touch-lifted');
-
-  // Haptic feedback if available
   if (navigator.vibrate) navigator.vibrate(30);
 }
 
@@ -794,15 +793,14 @@ function onTouchMove(e) {
   if (!touchClone) return;
   const touch = e.touches[0];
 
-  // Move clone
   touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
-  touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+  touchClone.style.top = (touch.clientY - touchOffsetY + window.scrollY) + 'px';
 
-  // Highlight target
+  // Find which item we're hovering over
   document.querySelectorAll('.item').forEach(el => el.classList.remove('touch-target'));
-  touchClone.style.display = 'none';
+  touchClone.style.visibility = 'hidden';
   const target = document.elementFromPoint(touch.clientX, touch.clientY);
-  touchClone.style.display = '';
+  touchClone.style.visibility = '';
   const itemEl = target && target.closest('.item');
   if (itemEl && parseInt(itemEl.dataset.idx) !== touchSrcIdx) {
     itemEl.classList.add('touch-target');
@@ -813,16 +811,13 @@ function onTouchEnd(e) {
   if (!touchClone) return;
   const touch = e.changedTouches[0];
 
-  // Remove clone
   touchClone.remove();
   touchClone = null;
-
-  // Find drop target
   document.querySelectorAll('.item').forEach(el => el.classList.remove('touch-target', 'touch-lifted'));
 
-  const itemEls = document.querySelectorAll('.item');
+  // Find drop target by position
   let targetIdx = null;
-  itemEls.forEach(el => {
+  document.querySelectorAll('.item').forEach(el => {
     const rect = el.getBoundingClientRect();
     if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
         touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
@@ -831,29 +826,27 @@ function onTouchEnd(e) {
   });
 
   if (targetIdx !== null && targetIdx !== touchSrcIdx) {
-    swapItems(touchSrcIdx, targetIdx);
+    insertItem(touchSrcIdx, targetIdx);
     if (navigator.vibrate) navigator.vibrate(15);
   } else {
-    renderItems(); // re-render to clear lifted state
+    renderItems();
   }
 
   touchSrcIdx = null;
 }
 
-// ─── SWAP ─────────────────────────────────────────────────────────────────────
-function swapItems(fromIdx, toIdx) {
-  const tmp = currentOrder[fromIdx];
-  currentOrder[fromIdx] = currentOrder[toIdx];
-  currentOrder[toIdx] = tmp;
+// ─── INSERT (reorder, not swap) ───────────────────────────────────────────────
+function insertItem(fromIdx, toIdx) {
+  // Remove item from its position and insert at target position
+  const item = currentOrder.splice(fromIdx, 1)[0];
+  currentOrder.splice(toIdx, 0, item);
   renderItems();
-  // Flash swapped items
+  // Flash the moved item at its new position
   const els = document.querySelectorAll('.item');
-  [fromIdx, toIdx].forEach(i => {
-    if (els[i]) {
-      els[i].classList.add('swapped');
-      setTimeout(() => els[i].classList.remove('swapped'), 400);
-    }
-  });
+  if (els[toIdx]) {
+    els[toIdx].classList.add('swapped');
+    setTimeout(() => els[toIdx].classList.remove('swapped'), 400);
+  }
 }
 
 // ─── SCORING ──────────────────────────────────────────────────────────────────
