@@ -184,6 +184,7 @@
     flex-direction: column;
     gap: 9px;
     margin-bottom: 16px;
+    position: relative;
   }
 
   .item {
@@ -198,47 +199,49 @@
     touch-action: none;
     position: relative;
     -webkit-tap-highlight-color: transparent;
-    transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.18s, opacity 0.18s;
+    transition: opacity 0.15s ease, transform 0.18s cubic-bezier(.25,.8,.25,1);
     will-change: transform;
+  }
+
+  .item.animate-in {
     animation: fadeUp 0.35s ease both;
   }
 
-  .item:nth-child(1) { animation-delay: 0.05s; }
-  .item:nth-child(2) { animation-delay: 0.10s; }
-  .item:nth-child(3) { animation-delay: 0.15s; }
-  .item:nth-child(4) { animation-delay: 0.20s; }
-  .item:nth-child(5) { animation-delay: 0.25s; }
+  .item.animate-in:nth-child(1) { animation-delay: 0.05s; }
+  .item.animate-in:nth-child(2) { animation-delay: 0.10s; }
+  .item.animate-in:nth-child(3) { animation-delay: 0.15s; }
+  .item.animate-in:nth-child(4) { animation-delay: 0.20s; }
+  .item.animate-in:nth-child(5) { animation-delay: 0.25s; }
 
   .item:hover {
     border-color: rgba(255,255,255,0.13);
     background: var(--bg4);
   }
 
-  /* Desktop drag states */
+  /* Dragging — ghost placeholder */
   .item.dragging {
-    opacity: 0.3;
-    transform: scale(0.96);
-    cursor: grabbing;
-    border-color: var(--border);
-  }
-
-  .item.drag-over {
-    border-color: var(--gold);
-    background: rgba(245,200,66,0.06);
-    box-shadow: 0 0 0 1px rgba(245,200,66,0.25), 0 4px 20px rgba(245,200,66,0.08);
-    transform: scale(1.01);
-  }
-
-  /* Mobile touch — floating clone effect */
-  .item.touch-lifted {
-    opacity: 0.25;
+    opacity: 0.18;
     transform: scale(0.97);
+    cursor: grabbing;
+    border-color: rgba(245,200,66,0.2);
+    background: rgba(245,200,66,0.03);
+    pointer-events: none;
   }
 
-  .item.touch-target {
-    border-color: var(--gold);
-    background: rgba(245,200,66,0.06);
-    box-shadow: 0 0 0 1px rgba(245,200,66,0.3);
+  /* Items shifting to make room */
+  .item.shift-down {
+    transform: translateY(calc(100% + 9px));
+  }
+
+  .item.shift-up {
+    transform: translateY(calc(-100% - 9px));
+  }
+
+  /* Mobile touch — ghost */
+  .item.touch-lifted {
+    opacity: 0.18;
+    transform: scale(0.97);
+    pointer-events: none;
   }
 
   /* Floating drag clone */
@@ -249,10 +252,10 @@
     border-radius: var(--radius);
     background: var(--bg4);
     border: 1px solid var(--gold);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(245,200,66,0.3);
-    transform: scale(1.04) rotate(1deg);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.75), 0 0 0 1px rgba(245,200,66,0.35);
+    transform: scale(1.05) rotate(0.8deg);
     transition: none;
-    opacity: 0.97;
+    opacity: 0.98;
     padding: 15px 16px;
     display: flex;
     align-items: center;
@@ -624,16 +627,8 @@ const dayNum = Math.floor((today - new Date(2025, 0, 1)) / 86400000) + 1;
 let PUZZLE = null;
 let correctOrder = [];
 let currentOrder = [];
-let dragSrcIdx = null;
 let submitted = false;
 let emojiGrid = [];
-
-// Touch drag state
-let touchSrcIdx = null;
-let touchClone = null;
-let touchCloneWidth = 0;
-let touchOffsetX = 0;
-let touchOffsetY = 0;
 
 // ─── LOCAL STORAGE ────────────────────────────────────────────────────────────
 function getStats() {
@@ -697,13 +692,15 @@ function shuffle(arr) {
   return a;
 }
 
+let firstRender = true;
+
 // ─── RENDER ITEMS ─────────────────────────────────────────────────────────────
 function renderItems() {
   const list = document.getElementById('itemsList');
   list.innerHTML = '';
   currentOrder.forEach((item, idx) => {
     const el = document.createElement('div');
-    el.className = 'item';
+    el.className = firstRender ? 'item animate-in' : 'item';
     el.dataset.idx = idx;
     el.innerHTML = `
       <div class="item-num">${idx + 1}</div>
@@ -713,140 +710,140 @@ function renderItems() {
         <div class="grip-line"></div>
         <div class="grip-line"></div>
       </div>`;
-
-    // Desktop
-    el.draggable = true;
-    el.addEventListener('dragstart', onDragStart);
-    el.addEventListener('dragend', onDragEnd);
-    el.addEventListener('dragover', onDragOver);
-    el.addEventListener('dragleave', onDragLeave);
-    el.addEventListener('drop', onDrop);
-
-    // Mobile
-    el.addEventListener('touchstart', onTouchStart, { passive: false });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    el.addEventListener('touchend', onTouchEnd);
-
     list.appendChild(el);
   });
+  firstRender = false;
 }
 
-// ─── DESKTOP DRAG ─────────────────────────────────────────────────────────────
-function onDragStart(e) {
-  dragSrcIdx = parseInt(this.dataset.idx);
-  this.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-}
-
-function onDragEnd() {
-  dragSrcIdx = null;
-  document.querySelectorAll('.item').forEach(i => {
-    i.classList.remove('dragging', 'drag-over', 'drag-above', 'drag-below');
+// Single drag listener attached once at page load — handles all items via delegation
+function setupDragListener() {
+  document.getElementById('itemsList').addEventListener('pointerdown', e => {
+    if (dragActive) return; // prevent stacking
+    const item = e.target.closest('.item');
+    if (item && !submitted) onPointerDown.call(item, e);
   });
 }
 
-function onDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('.item').forEach(i => i.classList.remove('drag-over'));
-  this.classList.add('drag-over');
+// Update rank numbers after drop
+function updateNumbers() {
+  document.querySelectorAll('#itemsList .item').forEach((el, i) => {
+    el.querySelector('.item-num').textContent = i + 1;
+    el.dataset.idx = i;
+  });
 }
 
-function onDragLeave(e) {
-  if (!this.contains(e.relatedTarget)) this.classList.remove('drag-over');
-}
+// ─── DRAG ENGINE — transform-based, stable DOM, live number on clone ──────────
+let dragActive  = false;
+let dragFromIdx = -1;
+let dragToIdx   = -1;
+let dragCloneEl = null;
+let dragGhostEl = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let itemHeights = [];
 
-function onDrop(e) {
+function onPointerDown(e) {
+  if (submitted) return;
   e.preventDefault();
-  const targetIdx = parseInt(this.dataset.idx);
-  if (dragSrcIdx !== null && dragSrcIdx !== targetIdx) {
-    insertItem(dragSrcIdx, targetIdx);
-  }
-  dragSrcIdx = null;
-}
 
-// ─── MOBILE TOUCH DRAG (floating clone + insert) ──────────────────────────────
-function onTouchStart(e) {
-  e.preventDefault();
-  const touch = e.touches[0];
-  touchSrcIdx = parseInt(this.dataset.idx);
+  dragFromIdx = parseInt(this.dataset.idx);
+  dragToIdx   = dragFromIdx;
+  dragActive  = true;
+  dragGhostEl = this;
+
+  // Cache original rects BEFORE any transforms
+  const els = [...document.querySelectorAll('#itemsList .item')];
+  itemHeights = els.map(el => {
+    const r = el.getBoundingClientRect();
+    return { top: r.top, mid: r.top + r.height / 2, h: r.height };
+  });
 
   const rect = this.getBoundingClientRect();
-  touchOffsetX = touch.clientX - rect.left;
-  touchOffsetY = touch.clientY - rect.top;
-  touchCloneWidth = rect.width;
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
 
-  touchClone = document.createElement('div');
-  touchClone.className = 'drag-clone';
-  touchClone.style.width = touchCloneWidth + 'px';
-  touchClone.innerHTML = this.innerHTML;
-  touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
-  touchClone.style.top = (touch.clientY - touchOffsetY + window.scrollY) + 'px';
-  document.body.appendChild(touchClone);
+  // Ghost source — hide completely, just keep space
+  this.style.opacity = '0';
+  this.style.pointerEvents = 'none';
 
-  this.classList.add('touch-lifted');
-  if (navigator.vibrate) navigator.vibrate(30);
+  // Build clone
+  dragCloneEl = document.createElement('div');
+  dragCloneEl.className = 'drag-clone';
+  dragCloneEl.style.width = rect.width + 'px';
+  dragCloneEl.innerHTML = this.innerHTML;
+  positionClone(e.clientX, e.clientY);
+  document.body.appendChild(dragCloneEl);
+
+  if (navigator.vibrate) navigator.vibrate(22);
+
+  document.addEventListener('pointermove', onPointerMove, { passive: false });
+  document.addEventListener('pointerup',   onPointerUp);
+  document.addEventListener('pointercancel', onPointerUp);
 }
 
-function onTouchMove(e) {
+function positionClone(cx, cy) {
+  dragCloneEl.style.left = (cx - dragOffsetX) + 'px';
+  dragCloneEl.style.top  = (cy - dragOffsetY + window.scrollY) + 'px';
+}
+
+function onPointerMove(e) {
+  if (!dragActive) return;
   e.preventDefault();
-  if (!touchClone) return;
-  const touch = e.touches[0];
+  positionClone(e.clientX, e.clientY);
 
-  touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
-  touchClone.style.top = (touch.clientY - touchOffsetY + window.scrollY) + 'px';
-
-  // Find which item we're hovering over
-  document.querySelectorAll('.item').forEach(el => el.classList.remove('touch-target'));
-  touchClone.style.visibility = 'hidden';
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
-  touchClone.style.visibility = '';
-  const itemEl = target && target.closest('.item');
-  if (itemEl && parseInt(itemEl.dataset.idx) !== touchSrcIdx) {
-    itemEl.classList.add('touch-target');
-  }
-}
-
-function onTouchEnd(e) {
-  if (!touchClone) return;
-  const touch = e.changedTouches[0];
-
-  touchClone.remove();
-  touchClone = null;
-  document.querySelectorAll('.item').forEach(el => el.classList.remove('touch-target', 'touch-lifted'));
-
-  // Find drop target by position
-  let targetIdx = null;
-  document.querySelectorAll('.item').forEach(el => {
-    const rect = el.getBoundingClientRect();
-    if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-        touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
-      targetIdx = parseInt(el.dataset.idx);
-    }
+  // Find target slot using CACHED original rects — unaffected by transforms
+  let newTarget = 0;
+  itemHeights.forEach((rect, i) => {
+    if (e.clientY > rect.mid) newTarget = i;
   });
 
-  if (targetIdx !== null && targetIdx !== touchSrcIdx) {
-    insertItem(touchSrcIdx, targetIdx);
-    if (navigator.vibrate) navigator.vibrate(15);
-  } else {
-    renderItems();
-  }
+  // Update clone number live
+  const cloneNum = dragCloneEl.querySelector('.item-num');
+  if (cloneNum) cloneNum.textContent = newTarget + 1;
 
-  touchSrcIdx = null;
+  if (newTarget === dragToIdx) return;
+  dragToIdx = newTarget;
+
+  // Shift items with CSS transform using cached slot height
+  const slotH = itemHeights[0].h + 9;
+  const els = [...document.querySelectorAll('#itemsList .item')];
+  els.forEach((el, i) => {
+    if (i === dragFromIdx) { el.style.transform = ''; return; }
+    let shift = 0;
+    if (dragFromIdx < dragToIdx && i > dragFromIdx && i <= dragToIdx) shift = -slotH;
+    if (dragFromIdx > dragToIdx && i >= dragToIdx && i < dragFromIdx) shift = slotH;
+    el.style.transform = shift ? `translateY(${shift}px)` : '';
+  });
 }
 
-// ─── INSERT (reorder, not swap) ───────────────────────────────────────────────
-function insertItem(fromIdx, toIdx) {
-  // Remove item from its position and insert at target position
-  const item = currentOrder.splice(fromIdx, 1)[0];
-  currentOrder.splice(toIdx, 0, item);
-  renderItems();
-  // Flash the moved item at its new position
-  const els = document.querySelectorAll('.item');
-  if (els[toIdx]) {
-    els[toIdx].classList.add('swapped');
-    setTimeout(() => els[toIdx].classList.remove('swapped'), 400);
+function onPointerUp(e) {
+  dragActive = false; // always reset regardless
+
+  document.removeEventListener('pointermove', onPointerMove);
+  document.removeEventListener('pointerup',   onPointerUp);
+  document.removeEventListener('pointercancel', onPointerUp);
+
+  if (dragCloneEl) { dragCloneEl.remove(); dragCloneEl = null; }
+
+  // Clear all transforms and ghost
+  document.querySelectorAll('#itemsList .item').forEach(el => {
+    el.style.transform  = '';
+    el.style.transition = '';
+    el.style.opacity    = '';
+    el.style.pointerEvents = '';
+  });
+
+  // Commit reorder
+  if (dragToIdx !== -1 && dragFromIdx !== -1 && dragToIdx !== dragFromIdx) {
+    const item = currentOrder.splice(dragFromIdx, 1)[0];
+    currentOrder.splice(dragToIdx, 0, item);
+    if (navigator.vibrate) navigator.vibrate(12);
   }
+
+  renderItems();
+  dragFromIdx = -1;
+  dragToIdx   = -1;
+  dragGhostEl = null;
 }
 
 // ─── SCORING ──────────────────────────────────────────────────────────────────
@@ -1022,6 +1019,7 @@ function showToast(msg) {
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+setupDragListener();
 setup();
 </script>
 </body>
