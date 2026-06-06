@@ -1201,9 +1201,15 @@
 
   <div class="dev-section">
     <div class="dev-section-title">Actions</div>
-    <button class="dev-btn" onclick="devRefreshPuzzle()">↻ Refresh Today's Puzzle</button>
+    <button class="dev-btn" onclick="devRefreshPuzzle()">↻ Regenerate Today</button>
     <button class="dev-btn danger" onclick="devClearLocal()">✕ Clear Local Storage</button>
-    <button class="dev-btn" onclick="devCopyPuzzleUrl()">⎘ Copy Puzzle URL</button>
+    <button class="dev-btn" onclick="devCopyPuzzleUrl()">⎘ Copy Worker URL</button>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <div class="dev-section-title" style="margin-bottom:8px">Set Tomorrow's Theme</div>
+      <input id="devThemeInput" placeholder="e.g. IPL, Cannes, Olympics..." 
+        style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;margin-bottom:8px;">
+      <button class="dev-btn" onclick="devSetTheme()">→ Set Theme for Tomorrow</button>
+    </div>
     <div class="dev-log" id="devLog"></div>
   </div>
 </div>
@@ -1217,7 +1223,7 @@ const WORKER_URL = 'https://lineup-puzzle-generator.sinhautkarsh-1.workers.dev';
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const today = new Date();
 const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-const LAUNCH_DATE = new Date(2026, 5, 5); // June 5, 2026
+const LAUNCH_DATE = new Date(2026, 5, 4); // June 4, 2026
 const dayNum = Math.floor((today - LAUNCH_DATE) / 86400000) + 1;
 
 let PUZZLE = null;
@@ -2145,6 +2151,23 @@ function devClearLocal() {
 function devCopyPuzzleUrl() {
   navigator.clipboard.writeText(WORKER_URL);
   document.getElementById('devLog').textContent = '✓ Worker URL copied to clipboard';
+}
+
+async function devSetTheme() {
+  const theme = document.getElementById('devThemeInput').value.trim();
+  if (!theme) { document.getElementById('devLog').textContent = '✕ Enter a theme first'; return; }
+  const log = document.getElementById('devLog');
+  log.textContent = 'Setting theme...';
+  const tomorrow = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
+  try {
+    const res = await fetch(`${WORKER_URL}/theme`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: tomorrow, theme, category: theme })
+    });
+    const data = await res.json();
+    log.textContent = data.ok ? `✓ Theme "${theme}" set for ${tomorrow}` : '✕ ' + data.error;
+  } catch { log.textContent = '✕ Failed to set theme'; }
 }
 
 setupDragListener();
