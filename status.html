@@ -193,7 +193,7 @@ async function runChecks() {
   if (githubResult.ok) setCard('github', 'ok', 'thegameforge.win responding', githubResult.latency);
   else { setCard('github', 'error', 'HTTP ' + githubResult.status, githubResult.latency); errors.push('Frontend down'); allOk = false; }
 
-  const clerkResult = await ping(CLERK);
+  const clerkResult = await ping('https://clerk.thegameforge.win/npm/@clerk/clerk-js@latest/dist/clerk.browser.js');
   if (clerkResult.ok || clerkResult.status === 404 || clerkResult.status === 302 || clerkResult.status === 200)
     setCard('clerk', 'ok', 'Auth endpoint reachable', clerkResult.latency);
   else { setCard('clerk', 'error', 'HTTP ' + clerkResult.status, clerkResult.latency); errors.push('Clerk down'); allOk = false; }
