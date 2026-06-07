@@ -2343,6 +2343,27 @@ function playReveal() {
     o.start(); o.stop(ctx.currentTime + 0.2);
   } catch {}
 }
-</script>
+
+// ─── MIGRATE OLD localStorage KEY FORMAT ─────────────────────────────────────
+// One-time fix: converts "2026-5-7" (0-indexed month) to "2026-06-07" (ISO)
+function migrateLocalStorage() {
+  try {
+    const s = getStats();
+    if (!s.lastPlayed) return;
+    if (!s.lastPlayed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const parts = s.lastPlayed.split('-');
+      const year = parseInt(parts[0]);
+      const month = parseInt(parts[1]) + 1; // 0-indexed → 1-indexed
+      const day = parseInt(parts[2]);
+      s.lastPlayed = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      saveStats(s);
+    }
+  } catch {}
+}
+
+migrateLocalStorage();
+setupDragListener();
+setup();
+window.addEventListener('load', initAuth);</script>
 </body>
 </html>
